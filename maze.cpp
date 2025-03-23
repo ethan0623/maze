@@ -5,100 +5,99 @@
 using namespace std;
 
 struct Cell {
-    bool isWall;       // 是否為牆
-    bool isVisited;    // 是否已經訪問過
+    bool isWall;
+    bool isVisited;
 };
 
-class Maze {
+class maze {
 private:
-    int width, height;
-    Cell** cells;  // 動態分配的迷宮格子
 
 public:
-    Maze(int w, int h) : width(w), height(h) {
-        cells = new Cell * [height];
-        for (int i = 0; i < height; ++i) {
-            cells[i] = new Cell[width];
-            for (int j = 0; j < width; ++j) {
-                cells[i][j].isWall = (rand() % 4 == 0); // 25% 機率是牆壁
-                cells[i][j].isVisited = false;   // 初始化為未訪問
+    Cell** cell;
+    int width, height;
+    maze(int w, int h) : width(w), height(h){
+        cell = new Cell* [height];
+        for (int i=0; i < height; i++) {
+            cell[i] = new Cell[width];
+            for (int j = 0; j < width; j++) {
+                cell[i][j].isWall = (rand() % 4 == 0);
+                cell[i][j].isVisited = false;
             }
         }
-        cells[0][0].isWall = false;  // 起點
-        cells[height - 1][width - 1].isWall = false; // 終點
+        cell[0][0].isWall = false;
+        cell[height - 1][width - 1].isWall = false;
     }
 
-    ~Maze() {
-        for (int i = 0; i < height; ++i) {
-            delete[] cells[i];  // 釋放每一列的記憶體
+    //~maze()為析構函數，專門釋放記憶體
+    ~maze(){
+        for (int i = 0; i < height; i++) {
+            delete[] cell[i];
         }
-        delete[] cells;  // 釋放指向列的指標
+        delete[] cell;
     }
 
-    void displayMaze(int playerX, int playerY) {
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                if (i == playerX && j == playerY) {
-                    cout << "P"; // 玩家位置
+    void display_maze(int player_x,int player_y) {
+        for (int i=0; i < height; i++) {
+            for (int j=0; j < width; j++) {
+                if (cell[i][j].isWall) {
+                    cout << "#";
                 }
-                else if (cells[i][j].isWall) {
-                    cout << "#"; // 牆
+                else if (i == player_x && j == player_y) {
+                    cout << "P";
                 }
                 else {
-                    cout << " "; // 空格
+                    cout << " ";
                 }
             }
             cout << endl;
         }
     }
+    bool player_move(int& player_x, int& player_y,int new_player_x,int new_player_y) {
+        cell[player_x][player_y].isVisited = true;
 
-    bool move(int& x, int& y, int newX, int newY) {
-        if (newX < 0 || newX >= height || newY < 0 || newY >= width || cells[newX][newY].isWall) {
+        if (new_player_x<0 || new_player_y<0 || new_player_x>(height - 1) || new_player_y>(width - 1) || cell[new_player_x][new_player_y].isWall) {
             cout << "無法移動，碰到牆壁！" << endl;
-            return false; // 超出邊界或碰撞牆壁
+            return false;
         }
-        x = newX;
-        y = newY;
-        cells[x][y].isVisited = true; // 標記為已訪問
-        if (x == height - 1 && y == width - 1) {
+        player_y=new_player_y;
+        player_x=new_player_x;
+        if (new_player_x == height - 1 && new_player_y == width - 1) {
             cout << "恭喜你成功到達終點！" << endl;
-            return true; // 成功到達終點
+            return true;
         }
-        return false;
+        else {
+            return false;
+        }
     }
 };
 
-int main() {
-    srand(static_cast<unsigned int>(time(0))); // 隨機種子
-    Maze maze(10, 10); // 創建一個10x10的迷宮
 
-    int x = 0, y = 0; // 起點位置
-    char moveDirection;
+int main() {
+    srand(static_cast<unsigned int>(time(0)));
+    maze maze_test(10, 10);
+    int x = 0, y = 0,new_x,new_y;
+    char move;
 
     while (true) {
-        maze.displayMaze(x, y); // 顯示迷宮及玩家位置
+        maze_test.display_maze(x, y);
+        new_x = x;
+        new_y = y;
         cout << "請輸入移動方向 (w: 上, s: 下, a: 左, d: 右): ";
-        cin >> moveDirection;
-
-        // 保存先前的位置以便在無法移動時不改變位置
-        int newX = x, newY = y;
-
-        switch (moveDirection) {
-        case 'w': newX--; break; // 向上移動
-        case 's': newX++; break; // 向下移動
-        case 'a': newY--; break; // 向左移動
-        case 'd': newY++; break; // 向右移動
-        default:
-            cout << "無效指令！" << endl;
-            continue;
+        cin >> move;
+        switch (move) {
+            case 'w':new_x--; break;
+            case 's':new_x++; break;
+            case 'a':new_y--; break;
+            case 'd':new_y++; break;
         }
 
-        // 嘗試移動並檢查結果
-        if (maze.move(x, y, newX, newY)) {
-            // 如果沒有返回true，則無需進行其他動作
+        if (maze_test.player_move(x, y, new_x, new_y)) {
             break;
         }
+        
     }
+    
+
 
     return 0;
 }
